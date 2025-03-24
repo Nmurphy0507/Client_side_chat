@@ -1,32 +1,45 @@
 import socket
-from threading import Thread
+import ssl
+import threading
 import os
 
+SERVER_IP = input("Enter server IP (e.g., 192.168.1.100 or public IP): ")
+PORT = 7632
+
 class Client:
-    def __init__(self, SERVER_IP, PORT):
-        self.socket = socket.socket()
-        self.socket.connect((SERVER_IP, PORT))
-        print(f"Connected to server at {SERVER_IP}:{PORT}")
-        self.talk_to_server()
+    def __init__(self):
+        self.context = ssl.create_default_context()
+        self.context.check_hostname = False  # Disable for self-signed certs
+        self.context.verify_mode = ssl.CERT_NONE  # Skip verification (testing only!)
+        
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.secure_sock = self.context.wrap_socket(self.sock, server_hostname=SERVER_IP)
+        self.secure_sock.connect((SERVER_IP, PORT))
+        print(f"Connected to {SERVER_IP}:{PORT}")
 
-    def talk_to_server(self):
-        Thread(target=self.receive_message).start()
-        self.send_message()
+        threading.Thread(target=self.receive).start()
+        self.send()
 
-    def send_message(self):
+    def receive(self):
         while True:
-            client_message = input("")
-            self.socket.send(client_message.encode())
-            if client_message.strip() == "bye":
-                os._exit(0)
+            try:
+                data = self.secure_sock.recv(1024).decode()
+                if not data:
+                    break
+                print(f"Server: {data}")
+            except:
+                break
+        print("Server disconnected.")
+        os._exit(0)
 
-    def receive_message(self):
+    def send(self):
         while True:
-            server_message = self.socket.recv(1024).decode()
-            if (server_message.strip() == "bye" or not server_message.strip()):
-                os._exit(0)
-            print("\033[1;31;40m" + "Server: " + server_message + "\033[0m")
+            try:
+                msg = input()
+                self.secure_sock.send(msg.encode())
+            except:
+                break
+        os._exit(0)
 
 if __name__ == "__main__":
-    server_ip = input("Enter server's IP address: ")
-    Client(server_ip, 7632)
+    Client()

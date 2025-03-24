@@ -1,38 +1,48 @@
 import socket
-from threading import Thread
+import ssl
+import threading
 import os
 
+HOST = '0.0.0.0'  # Listen on all interfaces
+PORT = 7632
+
 class Server:
-    def __init__(self, PORT):
-        # Use '' to bind to all available network interfaces
-        HOST = ''  # Listen on all network interfaces
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.bind((HOST, PORT))
-        self.socket.listen()
+    def __init__(self):
+        self.context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+        self.context.load_cert_chain('server.crt', 'server.key')
         
-        print(f'Server is waiting for client connection on port {PORT}...')
-        client_socket, address = self.socket.accept()
-        print(f"Connection from: {address}")
-        
-        self.talk_to_client(client_socket)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.bind((HOST, PORT))
+        self.sock.listen()
+        print(f"Server running on {HOST}:{PORT} (Waiting for client...)")
 
-    def talk_to_client(self, client_socket):
-        Thread(target=self.receive_message, args=(client_socket,)).start()
-        self.send_message(client_socket)
+        self.conn, self.addr = self.sock.accept()
+        self.secure_conn = self.context.wrap_socket(self.conn, server_side=True)
+        print(f"Connected to {self.addr}")
 
-    def send_message(self, client_socket):
+        threading.Thread(target=self.receive).start()
+        self.send()
+
+    def receive(self):
         while True:
-            server_message = input("")
-            client_socket.send(server_message.encode())
-            if server_message.strip() == "bye":
-                os._exit(0)
+            try:
+                data = self.secure_conn.recv(1024).decode()
+                if not data:
+                    break
+                print(f"Client: {data}")
+            except:
+                break
+        print("Client disconnected.")
+        os._exit(0)
 
-    def receive_message(self, client_socket):
+    def send(self):
         while True:
-            client_message = client_socket.recv(1024).decode()
-            if (client_message.strip() == "bye" or not client_message.strip()):
-                os._exit(0)
-            print("\033[1;31;40m" + "Client: " + client_message + "\033[0m")
+            try:
+                msg = input()
+                self.secure_conn.send(msg.encode())
+            except:
+                break
+        os._exit(0)
 
 if __name__ == "__main__":
-    Server(56797)
+    Server()
