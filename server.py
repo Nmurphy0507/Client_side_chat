@@ -9,7 +9,11 @@ class Server:
         self.socket.bind((HOST, PORT))
         self.socket.listen()
         
-        print(f'Server is waiting for client connection on port {PORT}...')
+        hostname = socket.gethostname()
+        ip_address = socket.gethostbyname(hostname)
+
+        
+        print(f'Server is listening on IP: {ip_address}, Port: {PORT}')
         client_socket, address = self.socket.accept()
         print(f"Connection from: {address}")
         
@@ -34,4 +38,4 @@ class Server:
             print("\033[1;31;40m" + "Client: " + client_message + "\033[0m")
 
 if __name__ == "__main__":
-    Server(139)
+    Server(4709)
