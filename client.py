@@ -3,9 +3,10 @@ from threading import Thread
 import os
 
 class Client:
-    def __init__(self, HOST, PORT):
+    def __init__(self, SERVER_IP, PORT):
         self.socket = socket.socket()
-        self.socket.connect((HOST, PORT))
+        self.socket.connect((SERVER_IP, PORT))
+        print(f"Connected to server at {SERVER_IP}:{PORT}")
         self.talk_to_server()
 
     def talk_to_server(self):

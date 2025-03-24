@@ -3,17 +3,17 @@ from threading import Thread
 import os
 
 class Server:
-    def __init__(self, HOST, PORT):
+    def __init__(self, PORT):
+        # Use '' to bind to all available network interfaces
+        HOST = ''  # Listen on all network interfaces
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((HOST, PORT))
         self.socket.listen()
-        print('Server is waiting for client connection...')
-
+        
+        print(f'Server is waiting for client connection on port {PORT}...')
         client_socket, address = self.socket.accept()
-        print("Connection from: " + str(address))
-        print("Host Name: " + str(HOST))
-        print("On this Port: " + str(PORT))
-
+        print(f"Connection from: {address}")
+        
         self.talk_to_client(client_socket)
 
     def talk_to_client(self, client_socket):
@@ -35,4 +35,4 @@ class Server:
             print("\033[1;31;40m" + "Client: " + client_message + "\033[0m")
 
 if __name__ == "__main__":
-    Server(7632)
+    Server(56797)
