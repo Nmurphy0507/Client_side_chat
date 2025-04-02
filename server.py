@@ -38,4 +38,4 @@ class Server:
             print("\033[1;31;40m" + "Client: " + client_message + "\033[0m")
 
 if __name__ == "__main__":
-    Server(4709)
+    Server(42069)

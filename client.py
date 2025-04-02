@@ -29,4 +29,4 @@ class Client:
 
 if __name__ == "__main__":
     server_ip = input("Enter server's IP address: ")
-    Client(server_ip, 4709)
+    Client(server_ip, 42069)
